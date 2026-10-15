@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Control Systems 101 + 201 · Mastery Course</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0d1520">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Control Course">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="stylesheet" href="katex/katex.min.css">
+<script defer src="katex/katex.min.js"></script>
+<script defer src="katex/contrib/auto-render.min.js"></script>
+<script defer src="sims.js"></script>
+<script defer src="curriculum.js"></script>
+<style>
+  :root{
+    --bg:#0d1520; --panel:#132030; --panel2:#1b2b3f; --line:#2a3d55;
+    --ink:#e4edf6; --muted:#9fb3c8; --accent:#4fc3e8; --accent2:#2a7fa8;
+    --ok:#6fcf8a; --bad:#e0685a; --warn:#e3b341; --lock:#6d8096;
+    --r:10px; --mono:"Cascadia Code",ui-monospace,Consolas,monospace;
+    --sans:system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--line);flex:0 0 auto}
+  header h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px}
+  header .spacer{flex:1}
+  header .meta{font-size:12px;color:var(--muted)}
+  button{font-family:inherit;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:8px 14px;border-radius:8px}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+  button.primary:hover{background:var(--accent)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.ghost{background:transparent}
+  .layout{flex:1;display:flex;min-height:0}
+  nav{width:300px;flex:0 0 auto;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:10px}
+  nav .mod{margin-bottom:6px}
+  nav .mod>.mhead{font-weight:600;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:8px 8px 4px}
+  nav .unit{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;cursor:pointer;border:1px solid transparent}
+  nav .unit:hover{background:var(--panel2)}
+  nav .unit.active{background:var(--panel2);border-color:var(--accent)}
+  nav .unit.locked{cursor:not-allowed;color:var(--lock)}
+  nav .unit .st{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted)}
+  nav .unit .ico{width:18px;text-align:center;flex:0 0 auto}
+  nav .unit .label{flex:1;font-size:14px}
+  .ok-dot{color:var(--ok)} .lock-dot{color:var(--lock)} .open-dot{color:var(--accent)}
+  main{flex:1;overflow-y:auto;padding:28px 40px;max-width:none}
+  .wrap{max-width:820px;margin:0 auto}
+  h2.unit-title{font-size:24px;margin:0 0 2px}
+  .crumb{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .block{margin:0 0 18px}
+  .block.heading{font-size:19px;font-weight:600;margin:26px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+  .block.prose p{margin:0 0 10px;white-space:pre-line}
+  .block.formula{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;text-align:center}
+  .block.formula .cap{color:var(--muted);font-size:13px;margin-top:8px;text-align:center}
+  .block.example{background:var(--panel);border-left:3px solid var(--accent);border-radius:8px;padding:12px 16px}
+  .block.example .tag{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);font-weight:700;margin-bottom:4px}
+  .block.recall{background:var(--panel2);border:1px dashed var(--line);border-radius:8px;padding:12px 16px}
+  .block.recall .q{font-weight:600}
+  .block.recall .a{margin-top:8px;color:var(--muted);display:none}
+  .block.recall.show .a{display:block}
+  .sim{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+  .sim h4{margin:0 0 4px;font-size:15px}
+  .sim .desc{color:var(--muted);font-size:13px;margin-bottom:10px}
+  .sim .sim-body canvas{width:100%;background:var(--bg);border-radius:8px;display:block;touch-action:none}
+  .sim .row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+  .sim .row button{font-size:13px;padding:6px 10px}
+  .sim canvas{width:100%;height:300px;background:var(--bg);border-radius:8px;display:block}
+  .sim .controls{display:flex;flex-wrap:wrap;gap:16px;margin-top:12px}
+  .sim .ctl{display:flex;flex-direction:column;gap:2px;font-size:13px;min-width:160px;flex:1}
+  .sim .ctl label{color:var(--muted);display:flex;justify-content:space-between}
+  .sim .ctl b{color:var(--accent);font-family:var(--mono)}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .sim .readout{margin-top:10px;font-family:var(--mono);font-size:13px;color:var(--muted)}
+  .footer-nav{display:flex;justify-content:space-between;margin-top:30px;padding-top:18px;border-top:1px solid var(--line)}
+  /* test */
+  .test-intro{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+  .qcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}
+  .qcard .qnum{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .qcard .qtext{font-weight:600;margin:6px 0 12px}
+  .qcard .opt{display:block;padding:10px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer}
+  .qcard .opt:hover{border-color:var(--accent)}
+  .qcard .opt.sel{border-color:var(--accent);background:var(--panel2)}
+  .qcard .opt input{margin-right:8px}
+  .step{margin:8px 0}
+  .step label{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+  .step input[type=text]{width:200px;font-family:var(--mono);font-size:14px;padding:7px 9px;background:var(--bg);border:1px solid var(--line);border-radius:6px;color:var(--ink)}
+  .step .unit{margin-left:6px;color:var(--muted);font-size:13px}
+  .verdict{padding:14px 16px;border-radius:8px;margin:18px 0;font-weight:600}
+  .verdict.pass{background:rgba(63,185,80,.12);border:1px solid var(--ok);color:#7ee787}
+  .verdict.fail{background:rgba(248,81,73,.10);border:1px solid var(--bad);color:#ff7b72}
+  .qresult{font-size:13px;margin-top:8px;padding:8px 10px;border-radius:6px}
+  .qresult.r-ok{background:rgba(63,185,80,.10);color:#7ee787}
+  .qresult.r-bad{background:rgba(248,81,73,.10);color:#ff7b72}
+  .qresult .worked{color:var(--muted);margin-top:6px}
+  .badge{font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--muted)}
+  .empty{color:var(--muted);text-align:center;margin-top:80px}
+  a.link{color:var(--accent);cursor:pointer;text-decoration:underline}
+  /* search */
+  #search-box{font-family:inherit;font-size:14px;padding:7px 10px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--ink);width:180px}
+  #search-box:focus{outline:none;border-color:var(--accent)}
+  .icon-btn{display:none;font-size:18px;padding:6px 11px;line-height:1}
+  .nav-backdrop{display:none}
+  .search-result{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+  .search-result:hover{border-color:var(--accent)}
+  .search-result.locked{cursor:not-allowed;opacity:.7}
+  .search-result .sr-loc{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+  .search-result.locked .sr-loc:after{content:" · 🔒 locked";color:var(--lock)}
+  .search-result .sr-snip{font-size:14px;color:var(--ink);line-height:1.5}
+  .search-result mark{background:rgba(124,191,106,.30);color:var(--ink);padding:0 2px;border-radius:3px}
+  /* diagrams (inline themeable SVG) */
+  .block.video{background:var(--panel);border-left:3px solid var(--warn);border-radius:8px;padding:10px 16px}
+  .block.video .tag{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--warn);font-weight:700;margin-bottom:2px}
+  .block.video .vnote{color:var(--muted);font-size:13px;margin-top:4px}
+  .block.diagram{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+  .block.diagram svg{width:100%;height:auto;display:block}
+  .block.diagram .cap{color:var(--muted);font-size:13px;margin-top:8px;text-align:center}
+  .dg-stroke{stroke:var(--ink);fill:none;stroke-width:2} .dg-line{stroke:var(--line);stroke-width:1}
+  .dg-accent{stroke:var(--accent);fill:none;stroke-width:2.5} .dg-fill{fill:var(--panel2)}
+  .dg-fill-accent{fill:var(--accent2)} .dg-bad{stroke:var(--bad);fill:none;stroke-width:2.5}
+  .dg-ok{stroke:var(--ok);fill:none;stroke-width:2.5} .dg-warn{stroke:var(--warn);fill:none;stroke-width:2.5}
+  .dg-txt{fill:var(--muted);font:11px var(--sans);text-anchor:middle}
+  .dg-txt-b{fill:var(--ink);font:600 12px var(--sans);text-anchor:middle}
+  .dg-txt-l{fill:var(--muted);font:11px var(--sans);text-anchor:start}
+  /* flip flashcard (recall) */
+  .block.recall .fc{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .block.recall .fc .hint{color:var(--muted);font-size:12px;margin-top:6px}
+  .block.recall .rate{display:none;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .block.recall.show .rate{display:flex}
+  .block.recall .rate button{font-size:13px;padding:6px 12px}
+  .block.recall .rate button.r-got{border-color:var(--ok)} .block.recall .rate button.r-got.on{background:var(--ok);color:#1a1208;border-color:var(--ok)}
+  .block.recall .rate button.r-shaky{border-color:var(--warn)} .block.recall .rate button.r-shaky.on{background:var(--warn);color:#1a1208;border-color:var(--warn)}
+  .block.recall .rate button.r-missed{border-color:var(--bad)} .block.recall .rate button.r-missed.on{background:var(--bad);color:#1a1208;border-color:var(--bad)}
+  .block.recall .rated-tag{font-size:11px;color:var(--muted);margin-left:4px}
+  /* inline quick-check (ungated) */
+  .block.quickcheck{background:var(--panel2);border:1px dashed var(--accent);border-radius:8px;padding:12px 16px}
+  .block.quickcheck .tag{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);font-weight:700;margin-bottom:6px}
+  .block.quickcheck .q{font-weight:600;margin-bottom:10px}
+  .block.quickcheck .opt{display:block;padding:9px 12px;border:1px solid var(--line);border-radius:8px;margin-bottom:7px;cursor:pointer}
+  .block.quickcheck .opt:hover{border-color:var(--accent)}
+  .block.quickcheck .opt.correct{border-color:var(--ok);background:rgba(111,191,115,.12)}
+  .block.quickcheck .opt.wrong{border-color:var(--bad);background:rgba(199,91,74,.12)}
+  .block.quickcheck .qc-fb{font-size:13px;margin-top:8px;color:var(--muted);display:none}
+  .block.quickcheck.done .qc-fb{display:block}
+  /* predict-then-reveal */
+  .block.predict{background:var(--panel);border-left:3px solid var(--warn);border-radius:8px;padding:12px 16px}
+  .block.predict .tag{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--warn);font-weight:700;margin-bottom:4px}
+  .block.predict .q{font-weight:600;margin-bottom:8px}
+  .block.predict .a{color:var(--muted);margin-top:8px;display:none}
+  .block.predict.show .a{display:block}
+  /* tap-to-match */
+  .block.match{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+  .block.match .tag{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--accent);font-weight:700;margin-bottom:8px}
+  .block.match .cols{display:flex;gap:12px}
+  .block.match .col{flex:1;display:flex;flex-direction:column;gap:8px}
+  .block.match .tile{padding:10px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;font-size:14px;background:var(--panel2)}
+  .block.match .tile:hover{border-color:var(--accent)}
+  .block.match .tile.sel{border-color:var(--accent);background:var(--bg)}
+  .block.match .tile.done{border-color:var(--ok);background:rgba(111,191,115,.12);cursor:default;opacity:.75}
+  .block.match .tile.flash{border-color:var(--bad);background:rgba(199,91,74,.14)}
+  .block.match .score{font-size:13px;color:var(--muted);margin-top:10px}
+  /* mobile */
+  @media (max-width:700px){
+    header{padding:8px 12px;gap:8px;padding-top:max(8px,env(safe-area-inset-top))}
+    header h1{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #staging-meta,#progress-meta,#reset-btn{display:none}
+    .icon-btn{display:inline-block}
+    #search-box{width:auto;flex:1;min-width:0}
+    main{padding:16px 14px;padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));padding-bottom:max(16px,env(safe-area-inset-bottom))}
+    .wrap{max-width:none}
+    nav{position:fixed;top:0;left:0;bottom:0;width:84%;max-width:320px;z-index:40;transform:translateX(-100%);transition:transform .22s ease;padding-top:max(14px,env(safe-area-inset-top))}
+    nav.open{transform:translateX(0)}
+    .nav-backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:30;opacity:0;pointer-events:none;transition:opacity .22s}
+    .nav-backdrop.show{opacity:1;pointer-events:auto}
+    .unit{padding:12px 12px}
+    .opt{padding:13px 12px}
+    .qcard,.test-intro,.sim,.block.formula{padding:14px}
+    button{padding:10px 14px}
+    .footer-nav{flex-wrap:wrap;gap:10px}
+    .sim canvas{height:240px}
+    .step input[type=text]{width:100%}
+    h2.unit-title{font-size:21px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <button class="ghost icon-btn" id="nav-toggle" aria-label="Open menu">☰</button>
+  <h1>Control Systems 101 + 201 · Mastery Course</h1>
+  <span class="meta" id="staging-meta"></span>
+  <div class="spacer"></div>
+  <input id="search-box" type="search" placeholder="Search course…" autocomplete="off" aria-label="Search course">
+  <span class="meta" id="progress-meta"></span>
+  <button class="ghost" id="reset-btn" title="Clear all progress">Reset progress</button>
+</header>
+<div class="layout">
+  <nav id="nav"></nav>
+  <div class="nav-backdrop" id="nav-backdrop"></div>
+  <main><div class="wrap" id="content"><div class="empty">Loading…</div></div></main>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   Control Systems Mastery Course · engine (forked from RAMS course)
+   Data comes from curriculum.js (global CURRICULUM).
+   No content is hard-coded here. XSS-safe: all author text is
+   inserted via textContent; only KaTeX renders math from $...$.
+   ============================================================ */
+(function(){
+  const STORE_KEY = "ctrl-course-state-v1";
+  let CUR = null;
+  let SEQ = [];          // ordered units: {moduleId, moduleTitle, stage, stageTitle, idx, unit}
+  let state = null;      // {schemaVersion, progress:{ "m0.3":{passed,attempts,lastDate,bestScore} }}
+  let current = null;    // current SEQ index being viewed
+  let activeTest = null; // runtime test state
+
+  /* ---------- helpers ---------- */
+  const $ = sel => document.querySelector(sel);
+  const el = (tag, cls) => { const e=document.createElement(tag); if(cls) e.className=cls; return e; };
+  function keyOf(u){ return u.moduleId + "." + u.stage; }
+  function fmtDate(d){ return new Date(d).toLocaleDateString("en-GB"); }
+  function renderMath(root){
+    if(window.renderMathInElement){
+      try{ renderMathInElement(root,{delimiters:[
+        {left:"$$",right:"$$",display:true},
+        {left:"$",right:"$",display:false}
+      ],throwOnError:false}); }catch(e){}
+    }
+  }
+
+  /* ---------- state ---------- */
+  function loadState(){
+    try{ const s=JSON.parse(localStorage.getItem(STORE_KEY)); if(s&&s.progress){ if(!s.recall) s.recall={}; return s; } }catch(e){}
+    return { schemaVersion:1, progress:{}, recall:{} };
+  }
+  function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  function unitPassed(u){ const p=state.progress[keyOf(u)]; return !!(p&&p.passed); }
+  function unitUnlocked(idx){ if(SEQ[idx].free || idx===0) return true; let j=idx-1; while(j>0 && SEQ[j].free) j--; return unitPassed(SEQ[j]); }
+
+  /* ---------- sequence build (spiral vs block) ---------- */
+  function buildSequence(){
+    // Modules are grouped by m.part ("101", "201", ...) in order of first appearance.
+    // Within each part: "block" staging = all modules at first listed stage, then second, ...
+    // m.free modules (the Simulation Lab) go last and are never locked.
+    SEQ = [];
+    const staging = (CUR.staging==="block") ? "block" : "spiral";
+    const gated = CUR.modules.filter(m=>!m.free), free = CUR.modules.filter(m=>m.free);
+    const parts = [];
+    gated.forEach(m=>{ const p=m.part||"main"; let g=parts.find(x=>x.p===p); if(!g){ g={p,mods:[]}; parts.push(g); } g.mods.push(m); });
+    parts.forEach(g=>{
+      if(staging==="spiral"){ g.mods.forEach(m => m.stages.forEach(s => pushUnit(m,s))); }
+      else {
+        const maxStages = Math.max(...g.mods.map(m=>m.stages.length));
+        for(let si=0; si<maxStages; si++) g.mods.forEach(m => { if(m.stages[si]) pushUnit(m,m.stages[si]); });
+      }
+    });
+    free.forEach(m => m.stages.forEach(s => pushUnit(m,s,true)));
+    SEQ.forEach((u,i)=>u.idx=i);
+    function pushUnit(m,s,isFree){
+      SEQ.push({ moduleId:m.id, moduleTitle:m.title, stage:s.stage,
+                 stageTitle:s.title||("Stage "+s.stage), unit:s, free:!!isFree });
+    }
+  }
+
+  /* ---------- navigation sidebar ---------- */
+  function renderNav(){
+    const nav = $("#nav"); nav.textContent="";
+    // group SEQ by module for display, but lock state follows SEQ order
+    let lastMod = null, modDiv=null;
+    SEQ.forEach((u,i)=>{
+      if(u.moduleId!==lastMod){
+        modDiv = el("div","mod");
+        const h = el("div","mhead"); h.textContent = u.moduleTitle; modDiv.appendChild(h);
+        nav.appendChild(modDiv); lastMod=u.moduleId;
+      }
+      const unlocked = unitUnlocked(i);
+      const passed = unitPassed(u);
+      const row = el("div","unit"+(i===current?" active":"")+(unlocked?"":" locked"));
+      const ico = el("span","ico");
+      ico.textContent = passed?"✔":(unlocked?"▸":"🔒");
+      ico.className = "ico "+(passed?"ok-dot":(unlocked?"open-dot":"lock-dot"));
+      const lab = el("span","label"); lab.textContent = u.stageTitle;
+      const st = el("span","st"); st.textContent = "L"+u.stage;
+      row.appendChild(ico); row.appendChild(lab); row.appendChild(st);
+      if(unlocked) row.onclick = ()=>{ current=i; activeTest=null; closeNav(); clearSearch(); render(); window.scrollTo(0,0); };
+      modDiv.appendChild(row);
+    });
+    const passedCount = SEQ.filter(unitPassed).length;
+    $("#progress-meta").textContent = passedCount+" / "+SEQ.length+" stages mastered";
+    $("#staging-meta").textContent = "Sequence: "+(CUR.staging==="block"?"blocked":"spiral");
+  }
+
+  /* ---------- lesson rendering ---------- */
+  function renderLesson(u){
+    const c = $("#content"); c.textContent="";
+    const wrap = el("div");
+    const title = el("h2","unit-title"); title.textContent = u.moduleTitle; wrap.appendChild(title);
+    const crumb = el("div","crumb"); crumb.textContent = u.stageTitle+" · depth level "+u.stage; wrap.appendChild(crumb);
+    (u.unit.blocks||[]).forEach((b,bi)=>wrap.appendChild(renderBlock(b,bi,u)));
+    // footer
+    const fn = el("div","footer-nav");
+    const left = el("div");
+    const right = el("div");
+    const testBtn = el("button","primary"); testBtn.textContent = unitPassed(u)?"Retake phase test":"Take phase test to unlock next →";
+    testBtn.onclick = ()=>{ startTest(u); };
+    if(!u.free) right.appendChild(testBtn);
+    fn.appendChild(left); fn.appendChild(right);
+    wrap.appendChild(fn);
+    c.appendChild(wrap);
+    renderMath(c);
+    wrap.querySelectorAll("[data-sim]").forEach(node=>mountSim(node, node.getAttribute("data-sim")));
+    wrap.querySelectorAll("[data-diagram]").forEach(node=>mountDiagram(node, node.getAttribute("data-diagram")));
+  }
+
+  function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+  function renderBlock(b,bi,u){
+    if(b.type==="heading"){ const e=el("div","block heading"); e.textContent=b.text; return e; }
+    if(b.type==="prose"){
+      const e=el("div","block prose");
+      String(b.text||"").split(/\n\s*\n/).forEach(par=>{ const p=el("p"); p.textContent=par; e.appendChild(p); });
+      return e;
+    }
+    if(b.type==="formula"){
+      const e=el("div","block formula");
+      const f=el("div"); f.textContent="$$"+(b.tex||"")+"$$"; e.appendChild(f);
+      if(b.caption){ const cap=el("div","cap"); cap.textContent=b.caption; e.appendChild(cap); }
+      return e;
+    }
+    if(b.type==="example"){
+      const e=el("div","block example");
+      const tag=el("span","tag"); tag.textContent=b.label||"Example"; e.appendChild(tag);
+      String(b.text||"").split(/\n\s*\n/).forEach(par=>{ const p=el("p"); p.textContent=par; p.style.margin="2px 0"; e.appendChild(p); });
+      return e;
+    }
+    if(b.type==="recall"){
+      const e=el("div","block recall");
+      const rkey=(u?keyOf(u):"?")+"#"+bi;
+      const fc=el("div","fc");
+      const q=el("div","q"); q.textContent="Recall: "+b.q; fc.appendChild(q);
+      const hint=el("div","hint"); hint.textContent="Tap to reveal · answer in your head first."; fc.appendChild(hint);
+      const a=el("div","a"); a.textContent=b.a; fc.appendChild(a);
+      e.appendChild(fc);
+      const rate=el("div","rate");
+      const prior=(state.recall&&state.recall[rkey])||null;
+      [["got","Got it","r-got"],["shaky","Shaky","r-shaky"],["missed","Missed","r-missed"]].forEach(([val,lbl,cls])=>{
+        const btn=el("button",cls+(prior===val?" on":"")); btn.textContent=lbl;
+        btn.onclick=()=>{ if(!state.recall) state.recall={}; state.recall[rkey]=val; saveState();
+          rate.querySelectorAll("button").forEach(x=>x.classList.remove("on")); btn.classList.add("on"); };
+        rate.appendChild(btn);
+      });
+      e.appendChild(rate);
+      fc.onclick=()=>{ if(!e.classList.contains("show")){ e.classList.add("show"); hint.textContent="How well did you recall it?"; renderMath(e); } };
+      return e;
+    }
+    if(b.type==="quickcheck"){
+      const e=el("div","block quickcheck");
+      const tag=el("span","tag"); tag.textContent="Quick check"; e.appendChild(tag);
+      const q=el("div","q"); q.textContent=b.q; e.appendChild(q);
+      const fb=el("div","qc-fb");
+      (b.options||[]).forEach((opt,oi)=>{
+        const o=el("div","opt"); o.textContent=opt;
+        o.onclick=()=>{
+          if(e.classList.contains("done")) return;
+          e.classList.add("done");
+          const correct=(oi===b.answer);
+          o.classList.add(correct?"correct":"wrong");
+          if(!correct){ const opts=e.querySelectorAll(".opt"); if(opts[b.answer]) opts[b.answer].classList.add("correct"); }
+          fb.textContent=(correct?"✔ Correct. ":"✗ Not quite. ")+(b.explain||"");
+        };
+        e.appendChild(o);
+      });
+      e.appendChild(fb);
+      return e;
+    }
+    if(b.type==="predict"){
+      const e=el("div","block predict");
+      const tag=el("span","tag"); tag.textContent="Predict first"; e.appendChild(tag);
+      const q=el("div","q"); q.textContent=b.q; e.appendChild(q);
+      const a=el("div","a"); a.textContent=b.a; e.appendChild(a);
+      const t=el("a","link"); t.textContent="Reveal answer"; t.style.fontSize="13px";
+      t.onclick=()=>{ e.classList.add("show"); t.style.display="none"; renderMath(e); };
+      e.appendChild(t);
+      return e;
+    }
+    if(b.type==="match"){
+      const e=el("div","block match");
+      const tag=el("span","tag"); tag.textContent="Match the pairs"; e.appendChild(tag);
+      const pairs=(b.pairs||[]).map((p,i)=>({i,term:p[0],def:p[1]}));
+      const cols=el("div","cols");
+      const colL=el("div","col"), colR=el("div","col");
+      const score=el("div","score");
+      let done=0, sel=null;
+      const total=pairs.length;
+      score.textContent="0 / "+total+" matched";
+      function tile(text,key){ const t=el("div","tile"); t.textContent=text; t.dataset.key=key; return t; }
+      const lefts=shuffle(pairs.slice()).map(p=>tile(p.term,p.i));
+      const rights=shuffle(pairs.slice()).map(p=>tile(p.def,p.i));
+      function pick(t){
+        if(t.classList.contains("done")) return;
+        if(!sel){ sel=t; t.classList.add("sel"); return; }
+        if(sel===t){ sel.classList.remove("sel"); sel=null; return; }
+        if(sel.parentNode===t.parentNode){ sel.classList.remove("sel"); sel=t; t.classList.add("sel"); return; }
+        if(sel.dataset.key===t.dataset.key){
+          sel.classList.remove("sel"); sel.classList.add("done"); t.classList.add("done");
+          done++; score.textContent=done+" / "+total+" matched"+(done===total?" · complete ✔":""); sel=null;
+        } else {
+          const a=sel,b2=t; [a,b2].forEach(x=>x.classList.add("flash"));
+          a.classList.remove("sel"); sel=null;
+          setTimeout(()=>[a,b2].forEach(x=>x.classList.remove("flash")),450);
+        }
+      }
+      lefts.forEach(t=>{ t.onclick=()=>pick(t); colL.appendChild(t); });
+      rights.forEach(t=>{ t.onclick=()=>pick(t); colR.appendChild(t); });
+      cols.appendChild(colL); cols.appendChild(colR);
+      e.appendChild(cols); e.appendChild(score);
+      return e;
+    }
+    if(b.type==="diagram"){
+      const e=el("div","block diagram"); e.setAttribute("data-diagram", b.id);
+      if(b.caption) e.setAttribute("data-cap", b.caption);
+      return e;
+    }
+    if(b.type==="video"){
+      const e=el("div","block video");
+      const tag=el("span","tag"); tag.textContent="Watch"; e.appendChild(tag);
+      const a=el("a","link"); a.textContent=b.title||b.url; a.href=b.url; a.target="_blank"; a.rel="noopener";
+      e.appendChild(a);
+      if(b.note){ const n=el("div","vnote"); n.textContent=b.note; e.appendChild(n); }
+      return e;
+    }
+    if(b.type==="sim"){
+      const e=el("div","block sim"); e.setAttribute("data-sim", b.sim);
+      return e;
+    }
+    const e=el("div","block prose"); e.textContent=JSON.stringify(b); return e;
+  }
+
+  /* ============================================================
+     SIM + DIAGRAM REGISTRIES live in sims.js (window.CTRL_SIMS,
+     window.CTRL_DIAGRAMS). Two sim kinds:
+       slider sim : {title, desc, controls:[{id,label,min,max,step,val,fmt}],
+                     draw(ctx,w,h,vals)->readoutString}
+       custom sim : {title, desc, mount(node, api)}  (drag/drop, games)
+     ============================================================ */
+  // looked up at mount time: sims.js is deferred and loads after this inline script
+  function mountSim(node, id){
+    const def = (window.CTRL_SIMS||{})[id];
+    node.textContent="";
+    if(!def){ node.textContent="[unknown sim: "+id+"]"; return; }
+    const h4=el("h4"); h4.textContent=def.title; node.appendChild(h4);
+    const desc=el("div","desc"); desc.textContent=def.desc; node.appendChild(desc);
+    if(def.mount){ const body=el("div","sim-body"); node.appendChild(body); def.mount(body,{el,renderMath}); return; }
+    const canvas=el("canvas"); node.appendChild(canvas);
+    const controls=el("div","controls"); node.appendChild(controls);
+    const readout=el("div","readout"); node.appendChild(readout);
+    const vals={};
+    (def.controls||[]).forEach(ctl=>{
+      vals[ctl.id]=ctl.val;
+      const wrap=el("div","ctl");
+      const lab=el("label"); const span=el("span"); span.textContent=ctl.label;
+      const b=el("b"); b.textContent=(ctl.fmt?ctl.fmt(ctl.val):ctl.val);
+      lab.appendChild(span); lab.appendChild(b);
+      const inp=el("input"); inp.type="range"; inp.min=ctl.min; inp.max=ctl.max; inp.step=ctl.step; inp.value=ctl.val;
+      inp.oninput=()=>{ vals[ctl.id]=parseFloat(inp.value); b.textContent=(ctl.fmt?ctl.fmt(vals[ctl.id]):vals[ctl.id]); draw(); };
+      wrap.appendChild(lab); wrap.appendChild(inp); controls.appendChild(wrap);
+    });
+    function draw(){
+      const dpr=window.devicePixelRatio||1;
+      const w=canvas.clientWidth, h=canvas.clientHeight;
+      canvas.width=w*dpr; canvas.height=h*dpr;
+      const ctx=canvas.getContext("2d"); ctx.scale(dpr,dpr);
+      ctx.clearRect(0,0,w,h);
+      const r=def.draw(ctx,w,h,vals);
+      readout.textContent=r||"";
+    }
+    requestAnimationFrame(draw);
+    window.addEventListener("resize",()=>requestAnimationFrame(draw));
+  }
+  function mountDiagram(node, id){
+    node.textContent="";
+    const svg=(window.CTRL_DIAGRAMS||{})[id];
+    if(!svg){ node.textContent="[unknown diagram: "+id+"]"; return; }
+    const holder=el("div"); holder.innerHTML=svg; node.appendChild(holder.firstChild);
+    const cap=node.getAttribute("data-cap");
+    if(cap){ const c=el("div","cap"); c.textContent=cap; node.appendChild(c); }
+  }
+
+  /* ============================================================
+     TEST ENGINE · mastery gate (100%), worked numeric required
+     ============================================================ */
+  function pickQuestions(test){
+    const pool = (test.pool||[]).slice();
+    const n = Math.min(test.numQuestions||pool.length, pool.length);
+    // shuffle
+    for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+    return pool.slice(0,n).map(q=>{
+      // numeric variant regeneration if provided
+      if(q.variants && q.variants.length){
+        const vobj = q.variants[Math.floor(Math.random()*q.variants.length)];
+        return Object.assign({}, q, vobj);
+      }
+      return Object.assign({}, q);
+    });
+  }
+
+  function startTest(u){
+    const test = u.unit.test;
+    if(!test || !(test.pool||[]).length){ alert("No phase test defined for this stage."); return; }
+    activeTest = { u, test, qs:pickQuestions(test), answers:{}, submitted:false };
+    renderTest();
+  }
+
+  function renderTest(){
+    const c=$("#content"); c.textContent="";
+    const wrap=el("div");
+    const at=activeTest;
+    const title=el("h2","unit-title"); title.textContent="Phase test · "+at.u.moduleTitle; wrap.appendChild(title);
+    const crumb=el("div","crumb");
+    crumb.textContent=at.u.stageTitle+" (level "+at.u.stage+") · mastery gate: every answer must be correct to unlock the next stage";
+    wrap.appendChild(crumb);
+
+    at.qs.forEach((q,qi)=>wrap.appendChild(renderQuestion(q,qi)));
+
+    const bar=el("div","footer-nav");
+    const back=el("button","ghost"); back.textContent="← Back to lesson"; back.onclick=()=>{activeTest=null;render();};
+    const submit=el("button","primary"); submit.textContent="Submit answers";
+    submit.onclick=()=>gradeTest();
+    bar.appendChild(back); bar.appendChild(submit);
+    wrap.appendChild(bar);
+    c.appendChild(wrap);
+    renderMath(c);
+  }
+
+  function renderQuestion(q,qi){
+    const card=el("div","qcard"); card.id="q"+qi;
+    const num=el("div","qnum"); num.textContent="Question "+(qi+1); card.appendChild(num);
+    const qt=el("div","qtext"); qt.textContent=q.q; card.appendChild(qt);
+    const at=activeTest;
+    if(q.type==="mcq"){
+      q.options.forEach((opt,oi)=>{
+        const lab=el("label","opt");
+        const inp=el("input"); inp.type="radio"; inp.name="q"+qi; inp.value=oi;
+        inp.onchange=()=>{ at.answers[qi]=oi; card.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel")); lab.classList.add("sel"); };
+        const span=el("span"); span.textContent=opt;
+        lab.appendChild(inp); lab.appendChild(span); card.appendChild(lab);
+      });
+    } else if(q.type==="numeric"){
+      card.appendChild(numInput(qi,"_final",q.unit));
+    } else if(q.type==="multistep"){
+      (q.steps||[]).forEach((s,si)=>{
+        const step=el("div","step");
+        const lab=el("label"); lab.textContent=(si+1)+". "+s.prompt; step.appendChild(lab);
+        step.appendChild(numInput(qi,"s"+si,s.unit));
+        card.appendChild(step);
+      });
+    }
+    return card;
+  }
+  function numInput(qi,slot,unit){
+    const step=el("div","step");
+    const inp=el("input"); inp.type="text"; inp.inputMode="decimal"; inp.placeholder="value";
+    inp.oninput=()=>{ activeTest.answers[qi]=activeTest.answers[qi]||{}; activeTest.answers[qi][slot]=inp.value; };
+    step.appendChild(inp);
+    if(unit){ const u=el("span","unit"); u.textContent=unit; step.appendChild(u); }
+    return step;
+  }
+
+  function numClose(got, want, tol){
+    const g=parseFloat(String(got).replace(/,/g,""));
+    if(!isFinite(g)) return false;
+    const t = (tol!=null)? tol : Math.max(1e-9, Math.abs(want)*0.01);
+    return Math.abs(g-want) <= t;
+  }
+
+  function gradeTest(){
+    const at=activeTest; let allOk=true; const results=[];
+    at.qs.forEach((q,qi)=>{
+      let ok=false, detail="";
+      if(q.type==="mcq"){
+        ok = at.answers[qi]===q.answer;
+        detail = ok? "Correct." : "Correct answer: "+q.options[q.answer]+(q.explain?(" · "+q.explain):"");
+      } else if(q.type==="numeric"){
+        const a=(at.answers[qi]||{})._final;
+        ok = numClose(a,q.answer,q.tol);
+        detail = ok? "Correct." : ("Expected ≈ "+q.answer+(q.unit?(" "+q.unit):"")+(q.worked?("  ·  "+q.worked):""));
+      } else if(q.type==="multistep"){
+        ok=true; const miss=[];
+        (q.steps||[]).forEach((s,si)=>{ const a=(at.answers[qi]||{})["s"+si]; const sok=numClose(a,s.answer,s.tol); if(!sok){ok=false;miss.push((si+1)+") expected ≈ "+s.answer+(s.unit?(" "+s.unit):""));} });
+        detail = ok? "All steps correct." : ("Check: "+miss.join("; ")+(q.worked?("  ·  "+q.worked):""));
+      }
+      if(!ok) allOk=false;
+      results.push({ok,detail,worked:q.worked});
+    });
+    // render results inline
+    at.qs.forEach((q,qi)=>{
+      const card=document.getElementById("q"+qi);
+      const old=card.querySelector(".qresult"); if(old) old.remove();
+      const r=el("div","qresult "+(results[qi].ok?"r-ok":"r-bad"));
+      r.textContent=(results[qi].ok?"✔ ":"✗ ")+results[qi].detail;
+      card.appendChild(r);
+    });
+    // verdict
+    const c=$("#content");
+    const oldv=c.querySelector(".verdict"); if(oldv) oldv.remove();
+    const v=el("div","verdict "+(allOk?"pass":"fail"));
+    const u=at.u;
+    const p=state.progress[keyOf(u)]||{passed:false,attempts:0};
+    p.attempts=(p.attempts||0)+1; p.lastDate=Date.now();
+    if(allOk){
+      p.passed=true; p.bestScore=1;
+      v.textContent="✔ Mastery achieved · every answer correct. Next stage unlocked. (attempt "+p.attempts+")";
+    } else {
+      const got=results.filter(r=>r.ok).length;
+      v.textContent="✗ Not yet mastered ("+got+"/"+results.length+" correct). Mastery requires 100%. Review, then retake · the question set will reshuffle. (attempt "+p.attempts+")";
+    }
+    state.progress[keyOf(u)]=p; saveState();
+    c.querySelector(".unit-title").insertAdjacentElement("afterend", v);
+    renderMath(c);
+    renderNav();
+    // offer retake / continue
+    const bar=c.querySelector(".footer-nav"); bar.textContent="";
+    if(allOk){
+      const next=el("button","primary");
+      const hasNext = u.idx+1 < SEQ.length;
+      next.textContent = hasNext? "Continue to next stage →":"Course complete 🎉 · back to start";
+      next.onclick=()=>{ current = hasNext? u.idx+1 : 0; activeTest=null; render(); window.scrollTo(0,0); };
+      const review=el("button","ghost"); review.textContent="Back to lesson"; review.onclick=()=>{activeTest=null;render();};
+      bar.appendChild(review); bar.appendChild(next);
+    } else {
+      const retake=el("button","primary"); retake.textContent="Retake (reshuffled)"; retake.onclick=()=>{ startTest(u); window.scrollTo(0,0); };
+      const review=el("button","ghost"); review.textContent="Back to lesson to review"; review.onclick=()=>{activeTest=null;render();};
+      bar.appendChild(review); bar.appendChild(retake);
+    }
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  /* ---------- top-level render ---------- */
+  function render(){
+    renderNav();
+    if(current==null){ current=0; }
+    if(!unitUnlocked(current)){ // safety: snap to last unlocked
+      let i=0; while(i+1<SEQ.length && unitPassed(SEQ[i])) i++; current=i;
+    }
+    if(activeTest){ renderTest(); return; }
+    renderLesson(SEQ[current]);
+  }
+
+  /* ---------- mobile nav drawer ---------- */
+  function openNav(){ const n=$("#nav"); if(n){ n.classList.add("open"); $("#nav-backdrop").classList.add("show"); } }
+  function closeNav(){ const n=$("#nav"); if(n){ n.classList.remove("open"); $("#nav-backdrop").classList.remove("show"); } }
+  function toggleNav(){ const n=$("#nav"); if(!n) return; n.classList.contains("open")?closeNav():openNav(); }
+  function clearSearch(){ const sb=$("#search-box"); if(sb) sb.value=""; }
+
+  /* ---------- search ---------- */
+  let SEARCH_IDX = null;
+  function buildSearchIndex(){
+    return SEQ.map((u,i)=>{
+      const parts=[u.moduleTitle, u.stageTitle];
+      (u.unit.blocks||[]).forEach(b=>{
+        if(b.text) parts.push(b.text);
+        if(b.q) parts.push(b.q);
+        if(b.a) parts.push(b.a);
+        if(b.caption) parts.push(b.caption);
+        if(b.label) parts.push(b.label);
+        if(b.explain) parts.push(b.explain);
+        if(b.options) parts.push(b.options.join(" "));
+        if(b.pairs) b.pairs.forEach(p=>parts.push(p[0]+" "+p[1]));
+      });
+      return { idx:i, mod:u.moduleTitle, stage:u.stageTitle, hay:parts.join("  •  ") };
+    });
+  }
+  function highlight(text, terms){
+    const frag=document.createDocumentFragment();
+    const esc=terms.map(t=>t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).filter(Boolean);
+    if(!esc.length){ frag.appendChild(document.createTextNode(text)); return frag; }
+    const re=new RegExp("("+esc.join("|")+")","ig");
+    let last=0,m;
+    while((m=re.exec(text))){
+      if(m.index>last) frag.appendChild(document.createTextNode(text.slice(last,m.index)));
+      const mk=el("mark"); mk.textContent=m[0]; frag.appendChild(mk);
+      last=m.index+m[0].length;
+      if(re.lastIndex===m.index) re.lastIndex++;
+    }
+    if(last<text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    return frag;
+  }
+  function renderSearch(q){
+    if(!SEARCH_IDX) SEARCH_IDX=buildSearchIndex();
+    const c=$("#content"); c.textContent="";
+    const wrap=el("div");
+    const title=el("h2","unit-title"); title.textContent="Search"; wrap.appendChild(title);
+    const crumb=el("div","crumb"); wrap.appendChild(crumb);
+    const ql=q.trim().toLowerCase();
+    if(ql.length<2){ crumb.textContent="Type at least two characters to search."; c.appendChild(wrap); return; }
+    const terms=ql.split(/\s+/);
+    const hits=[];
+    SEARCH_IDX.forEach(rec=>{
+      const hayl=rec.hay.toLowerCase();
+      if(terms.every(t=>hayl.includes(t))){
+        const pos=hayl.indexOf(terms[0]);
+        const start=Math.max(0,pos-45);
+        const snip=rec.hay.slice(start, pos+90);
+        hits.push({ rec, snip:(start>0?"… ":"")+snip+" …" });
+      }
+    });
+    crumb.textContent=hits.length+" result"+(hits.length===1?"":"s")+" for “"+q.trim()+"”";
+    hits.forEach(h=>{
+      const unlocked=unitUnlocked(h.rec.idx);
+      const card=el("div","search-result"+(unlocked?"":" locked"));
+      const loc=el("div","sr-loc"); loc.textContent=h.rec.mod+" · "+h.rec.stage; card.appendChild(loc);
+      const snip=el("div","sr-snip"); snip.appendChild(highlight(h.snip, terms)); card.appendChild(snip);
+      if(unlocked){
+        card.onclick=()=>{ current=h.rec.idx; activeTest=null; clearSearch(); closeNav(); render(); window.scrollTo(0,0); };
+      }
+      wrap.appendChild(card);
+    });
+    if(!hits.length){ const e=el("div","empty"); e.style.marginTop="40px"; e.textContent="No matches. Try a different term."; wrap.appendChild(e); }
+    c.appendChild(wrap);
+    renderMath(c);
+  }
+
+  /* ---------- boot ---------- */
+  function boot(){
+    if(typeof CURRICULUM==="undefined"){ $("#content").innerHTML=""; $("#content").textContent="curriculum.js not found or invalid."; return; }
+    CUR=CURRICULUM; state=loadState(); buildSequence();
+    current=0;
+    // resume at first unmastered unlocked unit
+    let i=0; while(i+1<SEQ.length && !SEQ[i+1].free && unitPassed(SEQ[i])) i++; current=i;
+    render();
+    $("#reset-btn").onclick=()=>{
+      if(confirm("Clear all course progress? This cannot be undone.")){
+        state={schemaVersion:1,progress:{},recall:{}}; saveState(); current=0; activeTest=null; render();
+      }
+    };
+    // mobile drawer
+    $("#nav-toggle").onclick=toggleNav;
+    $("#nav-backdrop").onclick=closeNav;
+    // search
+    const sb=$("#search-box");
+    let sdeb;
+    sb.oninput=()=>{
+      clearTimeout(sdeb);
+      sdeb=setTimeout(()=>{
+        const q=sb.value;
+        if(q.trim().length>=2){ activeTest=null; renderSearch(q); }
+        else { render(); }
+      },180);
+    };
+    sb.onkeydown=(e)=>{ if(e.key==="Escape"){ sb.value=""; render(); sb.blur(); } };
+  }
+  window.addEventListener("DOMContentLoaded",()=>{ // ensure katex auto-render is loaded (defer)
+    if(document.readyState==="complete") boot(); else window.addEventListener("load",boot);
+  });
+})();
+</script>
+<script>
+/* service worker registration · enables install + offline */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
